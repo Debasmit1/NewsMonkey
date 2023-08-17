@@ -11,10 +11,11 @@ function News(props) {
     const [page,setPage] = useState(1);
     const [totalPage,setTotalPage] = useState(0);
     const [totalInput,setTotalInput] = useState(0);
+    const apiKey = process.env.REACT_APP_NEWS_API;
 
      const updateNews = async () => {
-        console.log(page)
-        const result = await axios.get(`https://newsapi.org/v2/top-headlines?country=${props.country}&category=${props.category}&apiKey=e41c75ef63954305b5556935131eb6af&page=${page-1}&pageSize=${props.pageSize}`);
+        console.log("OUT "+page)
+        const result = await axios.get(`https://newsapi.org/v2/top-headlines?country=${props.country}&category=${props.category}&apiKey=${apiKey}&page=${page+1}&pageSize=${props.pageSize}`);
         setArticles(articles.concat(result.data.articles));
         setLoading(false);
     }
@@ -26,45 +27,37 @@ function News(props) {
     useEffect(()=>{
         const fetchArticle = async () => {
         try {
-            const result = await axios.get(`https://newsapi.org/v2/top-headlines?country=${props.country}&category=${props.category}&apiKey=e41c75ef63954305b5556935131eb6af&page=${page}&pageSize=${props.pageSize}`);
+            // props.setProgress(10);
+            const result = await axios.get(`https://newsapi.org/v2/top-headlines?country=${props.country}&category=${props.category}&apiKey=${apiKey}&page=${page}&pageSize=${props.pageSize}`);
             //console.log(result.data.articles);
+            // props.setProgress(30);
             setArticles(result.data.articles);
             setTotalInput(result.data.totalResults);
             setTotalPage(Math.ceil(totalInput/props.pageSize))
+            // props.setProgress(50);
             console.log(totalInput+" "+totalPage+" "+articles.length);
             setLoading(false);
             document.title = `${capitalizeFirstLetter(props.category)} - NewsMonkey`
+            // props.setProgress(100);
         } catch (error) {
             console.error("Error fetching article " ,error);
         }
       };
 
       fetchArticle();
-    },[props.category,page])
+    },[props.category])
 
-
-    const handlePrevClick = async () => {
-        setPage(page-1);
-        setLoading(true);
-        updateNews();
-    }
-
-    const handleNextClick = async () => {
-        setLoading(true);
-        if(totalPage>page){
-         setPage(page+1);
-         updateNews();
-        }
-    }
 
     const fetchMoreData = async () => {
+        console.log("IN "+page);
         setPage(page+1);
+        console.log("IN "+page);
         updateNews();
     };
 
   return (
     <>
-        <h1 className="text-center">NewsMonkey {props.category === "general" ? "" :"- Top "+ capitalizeFirstLetter(props.category)+" Headlines"}</h1>
+        <h1 className="text-center" style={{marginTop:"70px"}}>NewsMonkey {props.category === "general" ? "" :"- Top "+ capitalizeFirstLetter(props.category)+" Headlines"}</h1>
         {loading && <Spinner />}
 
         <InfiniteScroll
@@ -76,8 +69,14 @@ function News(props) {
           <div className="container">
             <div className="row">
                 {articles.length===0 ? <p></p> : articles.map((element)=>{
-                    return  (element.urlToImage !== null && element.title && element.description && <div className="col-md-4" key={element.url}>
-                        <NewsItem  title={element.title.slice(0,45)} description={element.description.slice(0,88)} imgUrl={element.urlToImage} newsUrl={element.url} author={element.author} date={element.publishedAt} source={element.source.name}/>
+                    return  (element.urlToImage !== null && element.title && element.description &&
+                    <div className="col-md-4" key={element.url}>
+                        <NewsItem
+                        title={element.title.slice(0,45)}
+                        description={element.description.slice(0,88)}
+                        imgUrl={element.urlToImage} newsUrl={element.url}
+                        author={element.author} date={element.publishedAt}
+                        source={element.source.name}/>
                     </div>)
                 })}
             </div>

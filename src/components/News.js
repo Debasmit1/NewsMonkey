@@ -18,6 +18,10 @@ function News(props) {
         setLoading(false);
     }
 
+    const capitalizeFirstLetter = (str) => {
+        return str.charAt(0).toUpperCase() + str.slice(1);
+    }
+
     useEffect(()=>{
         const fetchArticle = async () => {
         try {
@@ -28,6 +32,7 @@ function News(props) {
             setTotalPage(Math.ceil(result.data.totalResults/props.pageSize))
             console.log(result.data.totalResults+" "+totalPage);
             setLoading(false);
+            document.title = `${capitalizeFirstLetter(props.category)} - NewsMonkey`
         } catch (error) {
             console.error("Error fetching article " ,error);
         }
@@ -53,7 +58,7 @@ function News(props) {
 
   return (
     <div className='container my-3'>
-        <h1 className="text-center">NewsMonkey - Top Headlines</h1>
+        <h1 className="text-center">NewsMonkey {props.category === "general" ? "" :"- Top "+ capitalizeFirstLetter(props.category)+" Headlines"}</h1>
         {loading && <Spinner />}
         <div className="row">
            {articles.length===0 ? <p></p> : articles.map((element)=>{

@@ -10,6 +10,14 @@ function News(props) {
     const [page,setPage] = useState(1);
     const [totalPage,setTotalPage] = useState(0);
 
+
+     const updateNews = async () => {
+        console.log(page)
+        const result = await axios.get(`https://newsapi.org/v2/top-headlines?country=${props.country}&category=${props.category}&apiKey=e41c75ef63954305b5556935131eb6af&page=${page-1}&pageSize=${props.pageSize}`);
+        setArticles(result.data.articles);
+        setLoading(false);
+    }
+
     useEffect(()=>{
         const fetchArticle = async () => {
         try {
@@ -17,7 +25,8 @@ function News(props) {
             const result = await axios.get(`https://newsapi.org/v2/top-headlines?country=${props.country}&category=${props.category}&apiKey=e41c75ef63954305b5556935131eb6af&page=${page}&pageSize=${props.pageSize}`);
             console.log(result.data.articles);
             setArticles(result.data.articles);
-            setTotalPage(Math.ceil(result.data.totalResults/100))
+            setTotalPage(Math.ceil(result.data.totalResults/props.pageSize))
+            console.log(result.data.totalResults+" "+totalPage);
             setLoading(false);
         } catch (error) {
             console.error("Error fetching article " ,error);
@@ -25,23 +34,20 @@ function News(props) {
       };
 
       fetchArticle();
-    },[props.category])
+    },[props.category,page])
+
 
     const handlePrevClick = async () => {
         setPage(page-1);
         setLoading(true);
-        const result = await axios.get(`https://newsapi.org/v2/top-headlines?country=${props.country}&category=${props.category}&apiKey=e41c75ef63954305b5556935131eb6af&page=${page-1}&pageSize=${props.pageSize}`);
-        setArticles(result.data.articles);
-        setLoading(false);
+        updateNews();
     }
 
     const handleNextClick = async () => {
         setLoading(true);
-        if(totalPage/props.pageSize>page+2){
-        setPage(page+1);
-        const result = await axios.get(`https://newsapi.org/v2/top-headlines?country=${props.country}&category=${props.category}&apiKey=e41c75ef63954305b5556935131eb6af&page=${page+1}&pageSize=${props.pageSize}`);
-        setArticles(result.data.articles);
-        setLoading(false);
+        if(totalPage>page){
+         setPage(page+1);
+         updateNews();
         }
     }
 
@@ -58,7 +64,7 @@ function News(props) {
         </div>
         <div className="container d-flex justify-content-between">
             <button disabled={page<=1} type="button"  className="btn btn-dark" onClick={handlePrevClick}>&larr; Previous</button>
-            <button disabled={totalPage/props.pageSize<page+2} type="button"  className="btn btn-dark" onClick={handleNextClick}>Next &rarr;</button>
+            <button disabled={totalPage==page+1} type="button"  className="btn btn-dark" onClick={handleNextClick}>Next &rarr;</button>
         </div>
     </div>
   )
